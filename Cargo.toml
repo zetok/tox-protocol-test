@@ -1,0 +1,7 @@
+[package]
+name = "tox-protocol-test"
+version = "0.0.1"
+authors = ["Zetok Zalbavar <zexavexxe@gmail.com>"]
+
+[dependencies]
+tox = { git = "https://github.com/zetok/tox.git" }
