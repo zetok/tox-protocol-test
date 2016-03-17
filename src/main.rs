@@ -196,8 +196,6 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
             parse_node_info(&bytes[(b_to_parse + 8)..]),
         Ok(ref s) if s == "Distance" =>
             parse_distance(&bytes[b_to_parse..]),
-
-        //Skipped::new().to_bytes(),
         _ => Skipped::new().to_bytes(), // skip everything else
     }
 }
