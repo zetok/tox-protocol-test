@@ -176,6 +176,28 @@ fn parse_distance(bytes: &[u8]) -> Vec<u8> {
 }
 
 
+/// Function to parse KBucketIndex and calculate index from PKs.
+///
+/// Returns `0` byte if supplied PKs are qual, or `1` byte followed by index
+/// byte otherwise.
+fn parse_kbucket_index(bytes: &[u8]) -> Vec<u8> {
+    let pk1 = match PublicKey::from_slice(&bytes[..PUBLICKEYBYTES]) {
+        Some(pk) => pk,
+        None => return Failure::from_str("Wrong amount of bytes for PK1!").to_bytes(),
+    };
+
+    let pk2 = match PublicKey::from_slice(&bytes[PUBLICKEYBYTES..(2 * PUBLICKEYBYTES)]) {
+        Some(pk) => pk,
+        None => return Failure::from_str("Wrong amount of bytes for PK2!").to_bytes(),
+    };
+
+    match kbucket_index(&pk1, &pk2) {
+        Some(i) => vec![1, i],
+        None    => vec![0],
+    }
+}
+
+
 /// Parse test and return resulting bytes.
 fn parse(bytes: &[u8]) -> Vec<u8> {
 
@@ -196,6 +218,8 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
             parse_node_info(&bytes[(b_to_parse + 8)..]),
         Ok(ref s) if s == "Distance" =>
             parse_distance(&bytes[b_to_parse..]),
+        Ok(ref s) if s == "KBucektIndex" =>
+            parse_kbucket_index(&bytes[b_to_parse..]),
         _ => Skipped::new().to_bytes(), // skip everything else
     }
 }
