@@ -18,15 +18,16 @@
 
 extern crate tox;
 
-use std::u64;
+use std::cmp::Ordering;
 use std::io;
 use std::io::prelude::*;
 use std::fs::OpenOptions;
-
 use std::string::String;
+use std::u64;
 
-use tox::toxcore::dht::*;
 use tox::toxcore::binary_io::*;
+use tox::toxcore::crypto_core::*;
+use tox::toxcore::dht::*;
 
 
 // All sent to hstox numbers are in Big Endian.
@@ -138,13 +139,42 @@ const NAME_POS: usize = 8;
 /// Function to parse bytes as PackedNode aka NodeInfo and return bytes.
 ///
 /// Returned bytes are either `Success` with encoded into bytes node, or a
-/// `Faliure` bytes that contain an error message.
+/// `Failure` bytes that contain an error message.
 fn parse_node_info(bytes: &[u8]) -> Vec<u8> {
     match PackedNode::from_bytes(bytes) {
         Some(pn) => Success::new(&pn.to_bytes()).to_bytes(),
         None => Failure::from_str("Failed to decode PackedNode.").to_bytes(),
     }
 }
+
+
+/// Function to parse bytes as PKs and compute relative distance between them.
+///
+/// Returned bytes are either `Success` with encoded into bytes relative
+/// distance indicator, or a `Failure` bytes with an error message.
+fn parse_distance(bytes: &[u8]) -> Vec<u8> {
+    let own_pk = match PublicKey::from_slice(&bytes[..PUBLICKEYBYTES]) {
+        Some(pk) => pk,
+        None => return Failure::from_str("Failed to parse bytes into \"own\" PK.").to_bytes(),
+    };
+
+    let alice_pk = match PublicKey::from_slice(&bytes[PUBLICKEYBYTES..(2 * PUBLICKEYBYTES)]) {
+        Some(pk) => pk,
+        None => return Failure::from_str("Failed to parse bytes into Alice PK.").to_bytes(),
+    };
+
+    let bob_pk = match PublicKey::from_slice(&bytes[(2 * PUBLICKEYBYTES)..(3 * PUBLICKEYBYTES)]) {
+        Some(pk) => pk,
+        None => return Failure::from_str("Failed to parse bytes into Bob PK.").to_bytes(),
+    };
+
+    match own_pk.distance(&alice_pk, &bob_pk) {
+        Ordering::Less =>    Success::new(&[0]).to_bytes(),
+        Ordering::Equal =>   Success::new(&[1]).to_bytes(),
+        Ordering::Greater => Success::new(&[2]).to_bytes(),
+    }
+}
+
 
 /// Parse test and return resulting bytes.
 fn parse(bytes: &[u8]) -> Vec<u8> {
@@ -155,15 +185,19 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
         u64::from_be(num) as usize
     };
 
+    // starting position of actual bytes of data
+    let b_to_parse = NAME_POS + test_name_len;
+
     match String::from_utf8(bytes[NAME_POS..(NAME_POS + test_name_len)].to_vec()) {
         Ok(ref s) if s == "TestFailure" => Failure::new().to_bytes(),
         Ok(ref s) if s == "TestSuccess" => Success::new(&[]).to_bytes(),
         Ok(ref s) if s == "SkippedTest" => Skipped::new().to_bytes(),
-        Ok(ref s) if s == "BinaryDecode NodeInfo" => {
-            parse_node_info(&bytes[(NAME_POS + test_name_len + 8)..])
-        },
-        // for now skip ↓
-        Ok(ref s) if s == "Distance" => Skipped::new().to_bytes(), 
+        Ok(ref s) if s == "BinaryDecode NodeInfo" =>
+            parse_node_info(&bytes[(b_to_parse + 8)..]),
+        Ok(ref s) if s == "Distance" =>
+            parse_distance(&bytes[b_to_parse..]),
+
+        //Skipped::new().to_bytes(),
         _ => Skipped::new().to_bytes(), // skip everything else
     }
 }
