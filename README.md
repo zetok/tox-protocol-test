@@ -5,10 +5,10 @@ Test layer between [hstox]
 (https://github.com/zetok/tox).
 
 Additional docs for writing tests are at
-https://github.com/TokTok/hstox/blob/master/src/Network/Tox/ExternalTest/Test.hs
+https://toktok.github.io/spec#test-protocol
 
 Tests are ran by linking test executable under `hstox/test/` directory and
-issuing `make`.
+issuing `cabal test`.
 
 Some setup for `hstox` and `zetox` is required. For more info, refer to their
 docs.

@@ -35,7 +35,7 @@ use tox::toxcore::dht::*;
 /// Write debug message to file
 #[allow(dead_code)]
 fn debug(msg: &str) {
-    let mut w = OpenOptions::new().append(true).create(true)
+    let mut w = OpenOptions::new().write(true).create(true).truncate(true)
                     .open("./debug.txt").unwrap();
     drop(w.write_all(&msg.as_bytes()));
 }
@@ -210,12 +210,12 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
     // starting position of actual bytes of data
     let b_to_parse = NAME_POS + test_name_len;
 
-    match String::from_utf8(bytes[NAME_POS..(NAME_POS + test_name_len)].to_vec()) {
+    match String::from_utf8(bytes[NAME_POS..b_to_parse].to_vec()) {
         Ok(ref s) if s == "TestFailure" => Failure::new().to_bytes(),
         Ok(ref s) if s == "TestSuccess" => Success::new(&[]).to_bytes(),
         Ok(ref s) if s == "SkippedTest" => Skipped::new().to_bytes(),
         Ok(ref s) if s == "BinaryDecode NodeInfo" =>
-            parse_node_info(&bytes[(b_to_parse + 8)..]),
+            parse_node_info(&bytes[(b_to_parse + 8/*data len number*/)..]),
         Ok(ref s) if s == "Distance" =>
             parse_distance(&bytes[b_to_parse..]),
         Ok(ref s) if s == "KBucektIndex" =>
@@ -228,8 +228,14 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
 fn main() {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
-    let mut buf = Vec::new();
-    stdin.read_to_end(&mut buf).unwrap();
-
-    drop(stdout.write(&parse(&buf)));
+    // according to iphy 10KB should be enough
+    let mut buf = [0; 10240];
+    debug("about to get bytes");
+    match stdin.read(&mut buf) {
+        Ok(num) => {
+            debug(&format!("got bytes: {}", num));
+            drop(stdout.write(&parse(&buf[..num])));
+        },
+        Err(e)  => debug(&format!("ain't got no bytes: {}", e)),
+    }
 }
