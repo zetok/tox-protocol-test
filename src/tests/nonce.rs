@@ -17,11 +17,25 @@
     along with Tox.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod distance;
-mod kbucket_index;
-mod nonce;
+//! https://toktok.github.io/spec#test-nonce-increment
 
-// Re-export stuff
-pub use self::distance::*;
-pub use self::kbucket_index::*;
-pub use self::nonce::*;
+use tox::toxcore::binary_io::*;
+use tox::toxcore::crypto_core::*;
+
+use super::super::result::*;
+
+/** Function to parse `Nonce Increment` bytes into `Nonce`, and increment it.
+
+    Can return `Failure` if bytes can't be parsed as `Nonce`.
+*/
+pub fn parse_nonce(bytes: &[u8]) -> Vec<u8> {
+    let mut nonce = match Nonce::from_slice(&bytes[..NONCEBYTES]) {
+        Some(n) => n,
+        None => return Failure::from_str("Wrong amount of bytes for nonce!").to_bytes(),
+    };
+
+    increment_nonce(&mut nonce);
+
+    let Nonce(n) = nonce;
+    Success::new(&n).to_bytes()
+}

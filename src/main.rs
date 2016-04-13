@@ -28,7 +28,6 @@ use std::u64;
 
 extern crate tox;
 use tox::toxcore::binary_io::*;
-use tox::toxcore::dht::*;
 
 mod result;
 use result::*;
@@ -50,35 +49,6 @@ fn debug(msg: &str) {
 /// Position where test name starts.
 const NAME_POS: usize = 8;
 
-
-/*
-    TODO: move all `parse_*` functions off to separate files
-*/
-
-/* TODO: needed clarification – current spec doesn't say anything about this
-         test, which was available at some point, and testing against hstox
-         brings "mixed" results, i.e. test seems to go well, but hstox claims:
-
-    ```
-    Failures:
-    2) Network.Tox.NodeInfo.NodeInfoExt re-encodes values correctly
-    ```
-
-    Once clarified, (fix &) move it somewhere.
-*/
-/** Function to parse bytes as PackedNode aka NodeInfo and return bytes.
-
-    Returned bytes are either `Success` with encoded into bytes node, or a
-    `Failure` bytes that contain an error message.
-*/
-fn parse_node_info(bytes: &[u8]) -> Vec<u8> {
-    match PackedNode::from_bytes(bytes) {
-        Some(pn) => Success::new(&pn.to_bytes()).to_bytes(),
-        None => Failure::from_str("Failed to decode PackedNode.").to_bytes(),
-    }
-}
-
-
 /// Parse test and return resulting bytes.
 fn parse(bytes: &[u8]) -> Vec<u8> {
 
@@ -95,10 +65,10 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
         Ok(ref s) if s == "TestFailure" => Failure::new().to_bytes(),
         Ok(ref s) if s == "TestSuccess" => Success::new(&[]).to_bytes(),
         Ok(ref s) if s == "SkippedTest" => Skipped::new().to_bytes(),
-        Ok(ref s) if s == "BinaryDecode NodeInfo" =>
-            parse_node_info(&bytes[(b_to_parse + 8/*data len number*/)..]),
         Ok(ref s) if s == "Distance" =>
             parse_distance(&bytes[b_to_parse..]),
+        Ok(ref s) if s == "NonceIncrement" =>
+            parse_nonce(&bytes[b_to_parse..]),
         Ok(ref s) if s == "KBucektIndex" =>
             parse_kbucket_index(&bytes[b_to_parse..]),
         _ => Skipped::new().to_bytes(), // skip everything else
