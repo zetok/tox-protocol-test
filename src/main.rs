@@ -29,6 +29,8 @@ use std::u64;
 extern crate tox;
 use tox::toxcore::binary_io::*;
 
+mod deconstructed;
+
 mod result;
 use result::*;
 
@@ -65,6 +67,8 @@ fn parse(bytes: &[u8]) -> Vec<u8> {
         Ok(ref s) if s == "TestFailure" => Failure::new().to_bytes(),
         Ok(ref s) if s == "TestSuccess" => Success::new(&[]).to_bytes(),
         Ok(ref s) if s == "SkippedTest" => Skipped::new().to_bytes(),
+        Ok(ref s) if s == "BinaryEncode NodeInfo" =>
+            parse_encode_packed_node(&bytes[b_to_parse..]),
         Ok(ref s) if s == "Distance" =>
             parse_distance(&bytes[b_to_parse..]),
         Ok(ref s) if s == "NonceIncrement" =>

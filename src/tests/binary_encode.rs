@@ -17,13 +17,24 @@
     along with Tox.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-mod binary_encode;
-mod distance;
-mod kbucket_index;
-mod nonce;
+/*! Parsing tests for binary encoding.
 
-// Re-export stuff
-pub use self::binary_encode::*;
-pub use self::distance::*;
-pub use self::kbucket_index::*;
-pub use self::nonce::*;
+    https://toktok.github.io/spec#test-binary-encode
+*/
+
+
+use tox::toxcore::binary_io::*;
+
+use super::super::deconstructed::*;
+use super::super::result::*;
+
+
+/** Function to parse binary encoding of PackedNode (aka NodeInfo) from a
+    deconstructed value.
+*/
+pub fn parse_encode_packed_node(bytes: &[u8]) -> Vec<u8> {
+    match DecPackedNode::from_bytes(bytes) {
+        Some(dpn) => Success::new(&dpn.as_packed_node().to_bytes()).to_bytes(),
+        None      => Failure::new().to_bytes(),
+    }
+}
