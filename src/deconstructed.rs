@@ -57,6 +57,20 @@ impl DecPackedNode {
             &self.public_key
         )
     }
+
+    pub fn from_packed_node(pn: &PackedNode) -> Self {
+        let udp = match pn.ip_type {
+            IpType::U4 | IpType::U6 => true,
+            _ => false,
+        };
+
+        DecPackedNode {
+            udp: udp,
+            addr: pn.saddr.ip(),
+            port: pn.saddr.port(),
+            public_key: pn.pk,
+        }
+    }
 }
 
 /// Minimal size in bytes of serialized `DecPackedNode`.
@@ -64,6 +78,23 @@ const DEC_PACKED_NODE_MIN: usize = 40;
 
 /// Maximum size in bytes of serialized `DecPackedNode`.
 const DEC_PACKED_NODE_MAX: usize = DEC_PACKED_NODE_MIN + 12;
+
+impl ToBytes for DecPackedNode {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut result = Vec::with_capacity(DEC_PACKED_NODE_MIN);
+        if self.udp { result.push(0); } else { result.push(1); }
+        match self.addr {
+            IpAddr::V4(_) => result.push(0),
+            IpAddr::V6(_) => result.push(1),
+        }
+        result.extend_from_slice(&self.addr.to_bytes());
+        result.extend_from_slice(&u16_to_array(self.port.to_be()));
+
+        let PublicKey(pk) = self.public_key;
+        result.extend_from_slice(&pk);
+        result
+    }
+}
 
 impl FromBytes<DecPackedNode> for DecPackedNode {
     fn from_bytes(bytes: &[u8]) -> Option<Self> {

@@ -12,4 +12,10 @@ issuing `cabal test`.
 Some setup for `hstox` and `zetox` is required. For more info, refer to their
 docs.
 
+Running all tests is tad slow, thus one can run a single test with:
+
+```
+./dist/build/test-tox/test-tox -m <test name>
+```
+
 TODO: add travis

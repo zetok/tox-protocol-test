@@ -17,22 +17,31 @@
     along with Tox.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*! Parsing tests for binary encoding.
+/*! Parsing tests for binary decoding.
 
-    https://toktok.github.io/spec#test-binary-encode
+    https://toktok.github.io/spec#test-binary-decode
 */
 
 
 use tox::toxcore::binary_io::*;
+use tox::toxcore::dht::PackedNode;
 
 use super::super::deconstructed::*;
 use super::super::result::*;
 
 
-/// Function to parse deconstructed value into a PackedNode (aka NodeInfo).
-pub fn parse_encode_packed_node(bytes: &[u8]) -> Vec<u8> {
-    match DecPackedNode::from_bytes(bytes) {
-        Some(dpn) => Success::new(&dpn.as_packed_node().to_bytes()).to_bytes(),
-        None      => Failure::new().to_bytes(),
+/** Function to parse `bytes → PackedNode → DecPackedNode → bytes`.
+
+    `PackedNode` bytes are prepended with length of bytes to parse.
+
+    https://toktok.github.io/spec#test-binary-decode
+*/
+pub fn parse_decode_packed_node(bytes: &[u8]) -> Vec<u8> {
+    let to_parse = u64::from_be(array_to_u64(&[bytes[0], bytes[1], bytes[2],
+            bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]])) as usize + 8;
+    match PackedNode::from_bytes(&bytes[8..to_parse]) {
+    //match PackedNode::from_bytes(bytes) {
+        Some(pn) => Success::new(&DecPackedNode::from_packed_node(&pn).to_bytes()).to_bytes(),
+        None => Failure::from_str("Failed to parse as PackedNode").to_bytes(),
     }
 }

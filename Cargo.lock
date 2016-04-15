@@ -6,13 +6,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ip"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "libc"
-version = "0.2.9"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -20,7 +15,7 @@ name = "libsodium-sys"
 version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -44,7 +39,7 @@ name = "sodiumoxide"
 version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -52,9 +47,8 @@ dependencies = [
 [[package]]
 name = "tox"
 version = "0.0.1"
-source = "git+https://github.com/zetok/tox.git#76971f6ea60e7b65644616d7e1fbd062dbce51e1"
+source = "git+https://github.com/zetok/tox.git#746cb643f1e5f63160658ab040c0ec8225d80107"
 dependencies = [
- "ip 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "sodiumoxide 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

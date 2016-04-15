@@ -17,12 +17,14 @@
     along with Tox.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+mod binary_decode;
 mod binary_encode;
 mod distance;
 mod kbucket_index;
 mod nonce;
 
 // Re-export stuff
+pub use self::binary_decode::*;
 pub use self::binary_encode::*;
 pub use self::distance::*;
 pub use self::kbucket_index::*;
